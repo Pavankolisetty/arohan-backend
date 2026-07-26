@@ -1,0 +1,19 @@
+# Maven output
+target/
+
+# Local environment and secrets
+.env
+.env.local
+
+# Editors and operating systems
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Logs and runtime artifacts
+*.log
+logs/
+hs_err_pid*
+
