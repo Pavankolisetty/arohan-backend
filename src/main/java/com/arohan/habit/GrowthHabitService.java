@@ -47,9 +47,16 @@ public class GrowthHabitService {
 
     @Transactional
     public HabitResponse create(UUID userId, UpsertHabitRequest request) {
+        if (request.clientRequestId() != null) {
+            var existing = habits.findByUserIdAndClientRequestId(
+                userId, request.clientRequestId());
+            if (existing.isPresent()) {
+                return response(userId, existing.get());
+            }
+        }
         validate(userId, request);
         GrowthHabit habit = habits.save(new GrowthHabit(userId, request));
-        schedules.save(new HabitSchedule(habit.getId(), request.schedule()));
+        schedules.saveAndFlush(new HabitSchedule(habit.getId(), request.schedule()));
         return response(userId, habit);
     }
 

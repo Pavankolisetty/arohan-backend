@@ -26,6 +26,9 @@ public class GrowthHabit extends AuditableEntity {
     @Column(name = "life_area_id", nullable = false)
     private UUID lifeAreaId;
 
+    @Column(name = "client_request_id")
+    private UUID clientRequestId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private HabitKind kind;
@@ -88,6 +91,7 @@ public class GrowthHabit extends AuditableEntity {
     public GrowthHabit(UUID userId, HabitDtos.UpsertHabitRequest request) {
         this.id = UUID.randomUUID();
         this.userId = userId;
+        this.clientRequestId = request.clientRequestId();
         this.status = HabitStatus.ACTIVE;
         this.trackingEnabledFrom = LocalDate.now(ZoneOffset.UTC);
         update(request);
@@ -137,6 +141,7 @@ public class GrowthHabit extends AuditableEntity {
     public UUID getId() { return id; }
     public UUID getUserId() { return userId; }
     public UUID getLifeAreaId() { return lifeAreaId; }
+    public UUID getClientRequestId() { return clientRequestId; }
     public HabitKind getKind() { return kind; }
     public String getName() { return name; }
     public String getPurpose() { return purpose; }

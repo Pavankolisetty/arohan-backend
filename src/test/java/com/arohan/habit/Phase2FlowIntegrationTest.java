@@ -154,6 +154,54 @@ class Phase2FlowIntegrationTest {
             .andExpect(jsonPath("$.message").value("Choose at least one weekday."));
     }
 
+    @Test
+    void repeatedCreateRequestReturnsTheSameHabitWithoutCreatingADuplicate() throws Exception {
+        String token = register("phase2-idempotent-" + UUID.randomUUID() + "@example.com");
+        String areaBody = mockMvc.perform(post("/api/v1/life-areas")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"parentId":null,"name":"Learning","description":"",
+                     "colorHex":"#397E9A","iconKey":"learning","backgroundKey":"open-sky",
+                     "backgroundImageUrl":"","desiredImportance":3,"positionIndex":0}
+                    """))
+            .andExpect(status().isCreated())
+            .andReturn().getResponse().getContentAsString();
+        String areaId = objectMapper.readTree(areaBody).get("id").asText();
+        String creationId = UUID.randomUUID().toString();
+        String request = """
+            {
+              "clientRequestId":"%s",
+              "kind":"GROWTH_HABIT","lifeAreaId":"%s","name":"Read",
+              "purpose":"Become a thoughtful learner","trackingMethod":"CHECKBOX",
+              "cueNote":"Open the book","twoMinuteStarter":"Read one paragraph",
+              "fallbackPlan":"If evening is busy, read after lunch.","positionIndex":0,
+              "schedule":{"type":"DAILY","startDate":"2026-07-26","weekdays":[]}
+            }
+            """.formatted(creationId, areaId);
+
+        String first = mockMvc.perform(post("/api/v1/growth-habits")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isCreated())
+            .andReturn().getResponse().getContentAsString();
+        String second = mockMvc.perform(post("/api/v1/growth-habits")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isCreated())
+            .andReturn().getResponse().getContentAsString();
+
+        org.assertj.core.api.Assertions.assertThat(
+            objectMapper.readTree(second).get("id").asText())
+            .isEqualTo(objectMapper.readTree(first).get("id").asText());
+        mockMvc.perform(get("/api/v1/growth-habits")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1));
+    }
+
     private String register(String email) throws Exception {
         String body = mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)

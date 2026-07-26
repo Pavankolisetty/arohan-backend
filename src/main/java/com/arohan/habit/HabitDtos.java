@@ -27,6 +27,7 @@ public final class HabitDtos {
     ) {}
 
     public record UpsertHabitRequest(
+        UUID clientRequestId,
         @NotNull HabitKind kind,
         @NotNull UUID lifeAreaId,
         @NotBlank @Size(max = 120) String name,
