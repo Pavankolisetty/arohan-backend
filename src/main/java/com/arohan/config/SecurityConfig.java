@@ -2,6 +2,8 @@ package com.arohan.config;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -70,14 +72,25 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource(
         org.springframework.core.env.Environment environment) {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(
-            java.util.List.of(environment.getProperty("arohan.cors.allowed-origin", "http://localhost:5173")));
-        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type"));
+        configuration.setAllowedOrigins(csvProperty(
+            environment.getProperty("arohan.cors.allowed-origins", "http://localhost:5173")));
+        List<String> originPatterns = csvProperty(
+            environment.getProperty("arohan.cors.allowed-origin-patterns", ""));
+        if (!originPatterns.isEmpty()) {
+            configuration.setAllowedOriginPatterns(originPatterns);
+        }
+        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }
-}
 
+    private List<String> csvProperty(String value) {
+        return Arrays.stream(value.split(","))
+            .map(String::trim)
+            .filter(entry -> !entry.isEmpty())
+            .toList();
+    }
+}

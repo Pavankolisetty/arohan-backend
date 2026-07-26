@@ -39,6 +39,8 @@ Configure these secrets in Render:
 
 Render generates `JWT_SECRET` from the Blueprint. The `prod` profile refuses to
 start when required database, JWT or frontend-origin values are missing.
+`FRONTEND_ORIGIN_PATTERNS` is optional and may contain comma-separated,
+project-scoped Vercel preview patterns. Never configure a global `*` origin.
 
 Flyway automatically creates and upgrades the schema at startup. Never manually
 edit `flyway_schema_history`, and never commit real credentials.

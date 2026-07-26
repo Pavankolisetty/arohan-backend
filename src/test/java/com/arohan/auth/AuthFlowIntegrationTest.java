@@ -2,8 +2,10 @@ package com.arohan.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -18,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -88,5 +91,18 @@ class AuthFlowIntegrationTest {
     void protectedRouteRejectsAnonymousRequest() throws Exception {
         mockMvc.perform(get("/api/v1/users/me"))
             .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void vercelProjectPreviewCanCallAuthenticationApi() throws Exception {
+        String previewOrigin =
+            "https://arohan-frontend-jxtoy07r1-pavankolisettys-projects.vercel.app";
+
+        mockMvc.perform(options("/api/v1/auth/login")
+                .header(HttpHeaders.ORIGIN, previewOrigin)
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST"))
+            .andExpect(status().isOk())
+            .andExpect(header().string(
+                HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, previewOrigin));
     }
 }
