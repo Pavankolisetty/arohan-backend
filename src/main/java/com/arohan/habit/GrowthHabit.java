@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.UUID;
 
 @Entity
@@ -93,7 +92,7 @@ public class GrowthHabit extends AuditableEntity {
         this.userId = userId;
         this.clientRequestId = request.clientRequestId();
         this.status = HabitStatus.ACTIVE;
-        this.trackingEnabledFrom = LocalDate.now(ZoneOffset.UTC);
+        this.trackingEnabledFrom = request.schedule().startDate();
         update(request);
     }
 
